@@ -1,0 +1,159 @@
+local M = {}
+
+local parsers = require 'nvim-treesitter.parsers'
+
+local ignored_field_names = {
+  python = {
+    _ = { 'attribute', 'name' }
+  },
+  lua = {
+    dot_index_expression = { 'field' },
+    field = { 'name' }
+  },
+  java = {
+    _ = { 'field' }
+  },
+  vim = {
+    scoped_identifier = { '_' }
+  }
+}
+
+local function julia_is_function_node(node)
+  local node_type = node:type()
+  if vim.tbl_contains({ 'function_definition', 'function_expression', 'do_clause' }, node_type) then
+    return true
+  end
+  if node_type == 'assignment_expression' then
+    if node:child(0):type() == 'call_expression' then
+      return true
+    end
+  end
+  return false
+end
+
+local function_or_catch_node_validators = {
+  c = { 'function_definition' },
+  cpp = { 'function_definition', 'lambda_expression', 'catch_clause' },
+  go = { 'function_declaration', 'method_declaration', 'func_literal' },
+  java = { 'method_declaration', 'lambda_expression', 'catch_clause'},
+  javascript = { 'function_declaration', 'method_definition', 'function', 'arrow_function', 'catch_clause' },
+  jsx = { 'function_declaration', 'method_definition', 'function', 'arrow_function', 'catch_clause' },
+  julia = julia_is_function_node,
+  lua = { 'function_declaration', 'function_definition' },
+  php = { 'function_definition', 'method_declaration', 'anonymous_function_creation_expression', 'arrow_function', 'catch_clause' },
+  python = { 'function_definition', 'lambda', 'except_clause' },
+  r = { 'function_definition', 'lambda_function' },
+  ruby = { 'method', 'lambda', 'block', 'do_block', 'rescue' },
+  rust = { 'function_item' },
+  tsx = { 'function_declaration', 'method_definition', 'function', 'arrow_function', 'catch_clause'  },
+  typescript = { 'function_declaration', 'method_definition', 'function', 'arrow_function', 'catch_clause'  },
+  vim = { 'function_definition', 'lambda_expression' },
+  zig = { 'TopLevelDecl'}
+}
+
+local multi_body_langs = { 'ruby', 'cpp', 'julia' }
+
+function M.ignore_node(filetype, node)
+  if ignored_field_names[filetype] and node:parent() then
+    for ch, field_name in node:parent():iter_children() do
+      if ch == node then
+        local ignored_list
+        if ignored_field_names[filetype][node:parent():type()] then
+          ignored_list = ignored_field_names[filetype][node:parent():type()]
+        else
+          ignored_list = ignored_field_names[filetype]['_'] or {}
+        end
+        return vim.tbl_contains(ignored_list, field_name) or vim.tbl_contains(ignored_list, '_')
+      end
+    end
+  end
+  return false
+end
+
+local function is_function_or_catch_node(filetype, node)
+  local validator = function_or_catch_node_validators[filetype]
+  if type(validator) == "table" then
+    return vim.tbl_contains(validator, node:type())
+  elseif type(validator) == "function" then
+    return validator(node)
+  end
+  return false
+end
+
+function M.get_first_function_parent(filetype, node)
+  while node and not is_function_or_catch_node(filetype, node) do
+    node = node:parent()
+  end
+  return node
+end
+
+-- Some languages (ejem, Ruby) don't have a single body node,
+-- but instead everything after the parameters is body
+function M.is_multi_body_lang(lang)
+  return vim.tbl_contains(multi_body_langs, lang)
+end
+
+function M.get_marks_limits(bufnr, marks_ns, extmark)
+  local mark_data = vim.api.nvim_buf_get_extmark_by_id(bufnr, marks_ns, extmark, {details=true})
+  return mark_data[1], mark_data[3].end_row
+end
+
+-- Merges overlapping (or non overlapping, but
+-- separated by up to a line) ranges in a list
+function M.merge_ranges(bufnr, marks_ns, ranges)
+  ranges = vim.tbl_filter(function (r)
+    return r ~= nil;
+  end, ranges)
+  if #ranges == 0 then return ranges end
+
+  -- Sort by ranges' start position
+  table.sort(ranges, function(a, b)
+    a = M.get_marks_limits(bufnr, marks_ns, a)
+    b = M.get_marks_limits(bufnr, marks_ns, b)
+    return a < b
+  end)
+
+  local last_added = ranges[1]
+  local merged_ranges = { last_added }
+  for i = 2, #ranges do
+    local next = ranges[i]
+    local last_start, last_end = M.get_marks_limits(bufnr, marks_ns, last_added)
+    local next_start, next_end = M.get_marks_limits(bufnr, marks_ns, next)
+
+    if last_end + 2 < next_start then
+      table.insert(merged_ranges, next)
+      last_added = next
+    else
+      if next_end > last_end then
+        vim.api.nvim_buf_set_extmark(bufnr, marks_ns, last_start, 0, {
+          id = last_added,
+          end_row = next_end,
+          end_col = 0,
+          strict = false
+        })
+      end
+      vim.api.nvim_buf_del_extmark(bufnr, marks_ns, next)
+    end
+  end
+
+  return merged_ranges
+end
+
+function M.get_lang(bufnr)
+    local filetype = vim.fn.getbufvar(bufnr, '&filetype')
+    return parsers.ft_to_lang(filetype)
+end
+
+function M.is_supported(lang)
+    return function_or_catch_node_validators[lang] ~= nil
+end
+
+function M.print_node_text(node, bufnr)
+  local text = vim.treesitter.query.get_node_text(node, bufnr)
+  for line = 1, #text do
+    print(text[line])
+  end
+end
+
+return M
+

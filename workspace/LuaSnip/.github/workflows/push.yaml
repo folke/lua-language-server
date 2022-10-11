@@ -1,0 +1,39 @@
+name: Generate docs and format
+
+on:
+  push:
+    branches:
+      - master
+  pull_request_target:
+
+jobs:
+  postprocessing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.head_ref }}
+      - name: panvimdoc
+        uses: kdheepak/panvimdoc@main
+        with:
+          vimdoc: luasnip
+          pandoc: DOC.md
+      - run: |
+          sudo add-apt-repository ppa:neovim-ppa/stable
+          sudo apt-get update
+          sudo apt-get install -y neovim
+          nvim +"helptags doc | exit"
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Auto generate docs"
+      - name: "Format with Stylua"
+        uses: JohnnyMorganz/stylua-action@v1.1.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v0.15.1
+          args: .
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Format with stylua"

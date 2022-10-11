@@ -1,0 +1,67 @@
+==============================================================================
+TEXT SUBJECTS                                  *nvim-treesitter-textsubjects*
+
+Location and syntax aware |text-objects| which handle surrounding whitespace
+and try to follow DWIM. If the keymap is pressed repeatedly in visual mode, it
+will continue to increase the selection to the surrounding match.
+
+For example, >
+    function foo()
+        return true
+    end
+<
+If we begin in visual mode in `true`, it will first select the entire return
+value in visual mode, then when pressed again it will select the entire
+function definition in visual-line mode.
+
+Query files: `textsubjects-smart.scm`, `textsubjects-container-outer.scm`,
+             `textsubjects-container-inner`.
+Supported options:
+- enable: `true` or `false`.
+- disable: list of languages.
+- prev_selection: string of key(s) to map
+- keymaps: map of keymaps to a tree-sitter query file names. See
+  |nvim-treesitter-textsubjects-query-files|.
+>
+  require'nvim-treesitter.configs'.setup {
+      textsubjects = {
+          enable = true,
+          prev_selection = ',', -- (Optional) keymap to select the previous selection
+          keymaps = {
+              ['.'] = 'textsubjects-smart',
+              [';'] = 'textsubjects-container-outer',
+              ['i;'] = 'textsubjects-container-inner',
+          },
+      },
+  }
+
+==============================================================================
+TEXT SUBJECT QUERY FILES             *nvim-treesitter-textsubjects-query-files*
+
+Text subject query files are tree-sitter query files which define the range
+named `range`. For example, we can create a range over Lua comments with the
+following query: >
+
+    (((comment) @_start @_end) (#make-range! "range" @_start @_end))
+<
+-----------------------------+------------------------------------------------
+Builtin Text Subject Queries | Description                                                                  ~
+-----------------------------+------------------------------------------------
+`textsubjects-smart`           | Depending on your location it may select
+                             | comments, function calls/definitions, loops,
+                             | if statements, arguments, return values.
+------------------------------------------------------------------------------
+`textsubjects-container-outer` | Depending on your location it may select
+                             | Classes, structs, functions, methods.
+------------------------------------------------------------------------------
+`textsubjects-container-inner` | Depending on your location it may select inside
+                             | Classes, structs, functions, methods.
+-----------------------------+------------------------------------------------
+
+Supported Languages:
+    - `textsubjects-smart`: `C`, `C++`, `Lua`, `Rust`, `Go`, `Ruby`, `Php`, `Python`, `Elixir`, `Julia`
+    - `textsubjects-container-outer`: `C`, `C++`, `Lua`, `Rust`, `Go`, `Ruby`, `Php`, `Python`, `Elixir`, `Julia`
+    - `textsubjects-container-inner`: `C`, `C++`, `Lua`, `Rust`, `Go`, `Ruby`, `Php`, `Python`
+
+
+vim:tw=78:ts=8:expandtab:noet:ft=help:norl:

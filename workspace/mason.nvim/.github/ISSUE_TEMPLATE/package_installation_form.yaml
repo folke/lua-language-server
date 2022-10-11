@@ -1,0 +1,104 @@
+name: Package installation issue
+description: Report an issue that occurs during the installation of a package
+labels:
+    - installation-issue
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              1. 👋! This is not an issue template for questions! If you have questions, please refer to [the discussion board](https://github.com/williamboman/mason.nvim/discussions/categories/q-a) :)
+              1. Before reporting an issue, make sure that you meet the minimum requirements mentioned in the README.
+              1. This is not a general support board for package installation issues. Please review the error output yourself first and ensure it's not a problem that is local to your system only.
+
+    - type: checkboxes
+      attributes:
+          label: I've made an initial investigation into the error myself
+          description: I've made an investigation and believe this is an error with mason.nvim (or that an improvement could be made).
+          options:
+              - label: "Yes"
+      validations:
+          required: true
+
+    - type: checkboxes
+      attributes:
+          label: I've recently downloaded the latest plugin version of mason.nvim
+          options:
+              - label: "Yes"
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Problem description
+          description: A clear and concise description of what the issue is and why you think it's an issue with mason.nvim.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: "Neovim version (>= 0.7)"
+          description: "Output of `nvim --version`"
+          placeholder: |
+              NVIM v0.7.0-dev
+              Build type: Release
+              LuaJIT 2.1.0-beta3
+      validations:
+          required: true
+
+    - type: input
+      attributes:
+          label: "Operating system/version"
+          description: "On Linux and Mac systems: `$ uname -a`"
+      validations:
+          required: true
+
+    - type: input
+      attributes:
+          label: Affected packages
+          description: If this issue is specific to one or more packages, list them here. If not, write 'All'.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Actual behavior
+          description: A short description of what's happening.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Expected behavior
+          description: A short description of the behavior you expected.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Mason output
+          description: Please provide the installation output available in the `:Mason` window, if possible.
+          placeholder: ":Mason"
+          render: Text
+
+    - type: textarea
+      attributes:
+          label: Installation log
+          description: "Make sure you set the log level to DEBUG before installing the package. Refer to `:help mason-debugging`"
+          placeholder: ":MasonLog. Make sure you set the log level to DEBUG before installing the package (:h mason-debugging). The default log level is not helpful for debugging purposes."
+          render: Text
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Healthcheck
+          placeholder: ":checkhealth mason"
+          render: Text
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Screenshots
+          description: If applicable, add screenshots to help explain your problem

@@ -1,0 +1,114 @@
+name: Package issue
+description: Report an issue with using a package installed via mason.nvim
+labels:
+    - package-issue
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              1. 👋! This is not an issue template for questions! If you have questions, please refer to [the discussion board](https://github.com/williamboman/mason.nvim/discussions/categories/q-a) :)
+              1. Before reporting an issue, make sure that you meet the minimum requirements mentioned in the README.
+              1. General usage issues with packages should not be reported here. Please only report issues that you believe are a result of something that mason.nvim does.
+
+    - type: checkboxes
+      attributes:
+          label: I believe this to be an issue that should be addressed by maintainers of mason.nvim.
+          description: I don't believe this is an issue with (i) the package itself, or (ii) my local system.
+          options:
+              - label: "Yes"
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Why do you think this is an issue with mason.nvim?
+          description: A short explanation of why you think it's an issue with mason.nvim.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: "Neovim version (>= 0.7)"
+          description: "Output of `nvim --version`"
+          placeholder: |
+              NVIM v0.7.0-dev
+              Build type: Release
+              LuaJIT 2.1.0-beta3
+      validations:
+          required: true
+
+    - type: input
+      attributes:
+          label: "Operating system/version"
+          description: "On Linux and Mac systems: `$ uname -a`"
+      validations:
+          required: true
+
+    - type: checkboxes
+      attributes:
+          label: I've manually reviewed logs to find potential errors
+          description: Logs such as `:MasonLog`, `:LspLog`, etc.
+          options:
+              - label: "Yes"
+      validations:
+          required: true
+
+    - type: checkboxes
+      attributes:
+          label: I've recently downloaded the latest plugin version of mason.nvim
+          options:
+              - label: "Yes"
+      validations:
+          required: true
+
+    - type: input
+      attributes:
+          label: Affected packages
+          description: If this issue is specific to one or more packages, list them here. If not, write 'All'.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Problem description
+          description: A clear and concise description of what the issue is.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Steps to reproduce
+          placeholder: |
+              1. ...
+              2. ...
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Actual behavior
+          description: Observed behavior.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Expected behavior
+          description: A description of the behavior you expected.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Healthcheck
+          placeholder: ":checkhealth mason"
+          render: Text
+      validations:
+          required: true
+
+    - type: textarea
+      id: screenshots
+      attributes:
+          label: Screenshots or recordings
+          description: If applicable, add screenshots or recordings to help explain your problem

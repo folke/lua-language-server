@@ -1,0 +1,295 @@
+*startuptime.txt*  Plugin for viewing startup timing information
+*vim-startuptime*
+
+Author: Daniel Steinberg - https://www.dannyadam.com
+Web: https://github.com/dstein64/vim-startuptime
+
+1. Requirements                            |startuptime-requirements|
+2. Installation                            |startuptime-installation|
+3. Usage                                   |startuptime-usage|
+4. Configuration                           |startuptime-configuration|
+5. API                                     |startuptime-api|
+6. Information                             |startuptime-information|
+
+|vim-startuptime| is a plugin for viewing vim and nvim startup event timing
+information, obtained by running (n)vim with the |--startuptime| argument. The
+plugin is customizable (see |startuptime-configuration|).
+
+Related Documentation ~
+
+1. |--startuptime| `vim` command option
+2. |+startuptime| `vim` compile-time feature
+
+============================================================================
+1. Requirements                            *startuptime-requirements*
+
+* `vim>=8.0.1453` or `nvim>=0.3.1`
+  - The plugin may work on earlier versions, but has not been tested.
+  - The plugin depends on compile-time features for vim (not applicable for
+    nvim).
+    * |+startuptime| is required.
+    * |+timers| is recommended, to capture all startup events.
+    * |+terminal| is required.
+
+============================================================================
+2. Installation                            *startuptime-installation*
+
+Use |packages| or one of the various package managers.
+
+============================================================================
+3. Usage                                   *startuptime-usage*
+
+* The *:StartupTime* command launches |vim-startuptime|.
+* Press `K` on events to get additional information.
+* Press `gf` on sourcing events to load the corresponding file in a new split.
+* The key sequences above can be customized (see |startuptime-configuration|).
+* Times are in milliseconds.
+
+Arguments ~
+                                           *startuptime-arguments*
+|:StartupTime| takes the following optional arguments.
+
+* `--hidden` prevents the output table from being generated. This may be useful
+  when |:StartupTime| is being run for its side effects (see |startuptime-api|).
+* `--sort` and `--no-sort` specify whether events are sorted.
+* `--sourcing-events` and `--no-sourcing-events` specify whether sourcing
+  events are included.
+* `--other-events` and `--no-other-events` specify whether other events
+  are included.
+* `--save` specifies a global variable for saving the underlying data (see
+  |startuptime-api|).
+* `--sourced` and `--no-sourced` specify whether to use 'self+sourced' timings
+  for sourcing events (otherwise, 'self' timings are used).
+* `--tries` specifies how many startup times are averaged.
+* `--help` shows this help documentation.
+ >
+	:StartupTime
+	       \ [--hidden]
+	       \ [--sort] [--no-sort]
+	       \ [--sourcing-events] [--no-sourcing-events]
+	       \ [--other-events] [--no-other-events]
+	       \ [--save STRING]
+	       \ [--sourced] [--no-sourced]
+	       \ [--tries INT]
+	       \ [--help]
+
+Modifiers ~
+                                           *startuptime-modifiers*
+|:StartupTime| accepts the following modifiers.
+
+* |:tab|
+* |:aboveleft| or |:leftabove|
+* |:belowright| or |:rightbelow|
+* |:vertical|
+
+Vim Options ~
+                                           *startuptime-vim-options*
+|:StartupTime| observes the following options, but these are overruled by
+|startuptime-modifiers|.
+
+* |'splitbelow'|
+* |'splitright'|
+
+============================================================================
+4. Configuration                           *startuptime-configuration*
+
+The following variables can be used to customize the behavior of
+|vim-startuptime|. The optional |startuptime-arguments| have higher precedence
+than these options.
+
+`Variable`                                `Default`
+  Description                             Info
+-------------                           -------
+*g:startuptime_more_info_key_seq*         `'K'`
+  Key sequence for getting more           Disable with `''`
+  information
+*g:startuptime_split_edit_key_seq*        `'gf'`
+  Key sequence for loading a sourcing     Disable with `''`
+  event file in a split window
+*g:startuptime_exe_path*                  `'RUNNING_VIM_PATH'`
+  Path to `vim` for startup timing
+*g:startuptime_exe_args*                  `[]`
+  Optional arguments to pass to `vim`
+*g:startuptime_sort*                      `1`
+  Specifies whether events are sorted
+*g:startuptime_tries*                     `1`
+  Specifies how many startup times
+  are averaged
+*g:startuptime_sourcing_events*           `1`
+  Specifies whether sourcing events
+  are included
+*g:startuptime_other_events*              `1`
+  Specifies whether other events are
+  are included
+*g:startuptime_sourced*                   `1`
+  Specifies whether to include
+  'sourced' timings (in addition to
+  'self' timings) for sourcing events
+*g:startuptime_event_width*               `20`
+  Event column width. When set to 0,
+  the column width will be dynamically
+  set so that no text is truncated.
+*g:startuptime_time_width*                `6`
+  Time column width
+*g:startuptime_percent_width*             `7`
+  Percent column width
+*g:startuptime_plot_width*                `26`
+  Plot column width
+*g:startuptime_colorize*                  `1`
+  Specifies whether table data is
+  colorized
+*g:startuptime_use_blocks*                `1` if 'encoding' is set to "utf-8"
+  Specifies whether Unicode block       and `0` otherwise
+  elements are used for plotting
+*g:startuptime_fine_blocks*               `0` on Windows and `1` otherwise
+  Specifies whether 1/8 increments
+  are used for Unicode blocks (1/2
+  increments are used otherwise)
+*g:startuptime_startup_indent*            `7`
+  Indentation for the startup row
+*g:startuptime_zero_progress_msg*         `1`
+  Specifies whether a debug message
+  is shown when progress is 0%
+*g:startuptime_zero_progress_time*        `2000`
+  Specifies the time in milliseconds
+  before showing a debug message when
+  progress is 0%
+
+The variables can be customized in your |.vimrc|, as shown in the following
+example.
+ >
+	let g:startuptime_sort = 0
+	let g:startuptime_tries = 5
+	let g:startuptime_exe_args = ['-u', '~/.vim/vimrc']
+
+Color Customization ~
+                                           *startuptime-color-customization*
+The following highlight groups can be configured to change |vim-startuptime|'s
+colors.
+
+Name                     Default    Description
+----                     -------    -----------
+`StartupTimeStartupKey`    `Normal`     Color for the startup key label
+`StartupTimeStartupValue`  `Title`      Color for the startup value
+`StartupTimeHeader`        `ModeMsg`    Color for the header row text
+`StartupTimeSourcingEvent` `Type`       Color for sourcing event names
+`StartupTimeOtherEvent`    `Identifier` Color for other event names
+`StartupTimeTime`          `Directory`  Color for the time column
+`StartupTimePercent`       `Special`    Color for the percent column
+`StartupTimePlot`          `Normal`     Color for the plot column
+
+The highlight groups can be customized in your |.vimrc|, as shown in the
+following example.
+ >
+	" Link StartupTimeSourcingEvent highlight to Title highlight
+	highlight link StartupTimeSourcingEvent Title
+
+	" Specify custom highlighting for StartupTimeTime
+	highlight StartupTimeTime
+	       \ term=bold ctermfg=12 ctermbg=159 guifg=Blue guibg=LightCyan
+
+Filetype Plugin ~
+                                           *startuptime-ftplugin*
+A `startuptime` filetype plugin (|ftplugin|) can be used to further customize
+|vim-startuptime|.
+
+============================================================================
+5. API                                     *startuptime-api*
+
+The plugin provides a way to access the data used for generating the output
+table. When the `--save` option is given to |:StartupTime|, a dictionary of
+data will be saved to the specified variable.
+
+	{'startup': ..., 'items': ..., 'types': ...}
+
+The `startup` entry has a dictionary with mean and standard deviation of total
+startup time.
+
+	{'mean': ..., 'std': ...}
+
+The `items` entry is an array of dictionaries, each corresponding to a startup
+event. This is the data used to generate |:StartupTime| output. The following
+example shows a `sourcing` event and an `other` event.
+
+	[
+	  {
+	    'occurrence': 1,
+	    'elapsed': {
+	      'std': str2float('nan'),
+	      'mean': 0.006
+	    },
+	    'finish': {
+	      'std': str2float('nan'),
+	      'mean': 0.006
+	    },
+	    'event': '--- NVIM STARTING ---',
+        'time': 0.006,
+	    'tries': 1,
+	    'type': 1,
+	    'start': {
+	      'std': str2float('nan'),
+	      'mean': 0.0
+	    }
+	  },
+	  ...,
+	  {
+	    'occurrence': 1,
+	    'self+sourced': {
+	      'std': str2float('nan'),
+	      'mean': 0.053
+	    },
+	    'finish': {
+	      'std': str2float('nan'),
+	      'mean': 4.913
+	    },
+	    'self': {
+	      'std': str2float('nan'),
+	      'mean': 0.053
+	    },
+	    'type': 0,
+        'time': 0.053,
+	    'tries': 1,
+	    'event': 'sourcing .../nvim/runtime/filetype.lua',
+	    'start': {
+	      'std': str2float('nan'),
+	      'mean': 4.86
+	    }
+	  },
+	  ...
+	]
+
+The `types` entry provides a mapping between different item types and their
+representation in the `type` field of items in the `items` array.
+
+	{'sourcing': 0, 'other': 1}
+
+When the data is saved, the `StartupTimeSaved` |User| |autocommand| is triggered.
+
+The `--hidden` argument prevents the output table from being generated. This
+may be useful when |:StartupTime| is being run only to extract data.
+
+Example:
+
+	:autocmd User StartupTimeSaved echo g:saved_startuptime.startup.mean
+	:StartupTime --save saved_startuptime --hidden
+
+The |:autocmd| line sets up a command for outputting average startup time
+when it's ready. The |:StartupTime| line runs the plugin, saving the data to a
+global variable and specifying that the results table not be generated. Once
+the data is ready, the command is triggered that outputs the result.
+
+============================================================================
+6. Information                             *startuptime-information*
+
+The `startup` time reported at the top of the output is the total time to start
+the editor. This does not necessarily equal the sum of values in the time
+column since events can overlap. The reported percents are taken relative to
+the `startup` time, and thus don't necessarily sum to 100%.
+
+The require(...) events added in Neovim PR #19267 are treated as if they are
+sourcing events. The full path to the underlying file is not provided, but an
+attempt to deduce this path is made when fulfilling a request to open the file
+in a new split.
+
+============================================================================
+ vim:tw=78:ts=4:ft=help:norl:

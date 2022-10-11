@@ -1,0 +1,24 @@
+name: Linting
+
+on: [push, pull_request]
+
+jobs:
+  selene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install Selene
+        run: cargo install selene
+      - name: Run Selene
+        run: make lint
+  stylua:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JohnnyMorganz/stylua-action@v1.1.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --color always --check lua/ tests/

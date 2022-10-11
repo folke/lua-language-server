@@ -1,0 +1,11 @@
+hl-TSCurrentScope	nvim-treesitter-refactor.txt	/*hl-TSCurrentScope*
+hl-TSDefinition	nvim-treesitter-refactor.txt	/*hl-TSDefinition*
+hl-TSDefinitionUsage	nvim-treesitter-refactor.txt	/*hl-TSDefinitionUsage*
+nvim-treesitter-refactor	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor*
+nvim-treesitter-refactor-highlight-current-scope	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor-highlight-current-scope*
+nvim-treesitter-refactor-highlight-definitions	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor-highlight-definitions*
+nvim-treesitter-refactor-highlights	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor-highlights*
+nvim-treesitter-refactor-modules	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor-modules*
+nvim-treesitter-refactor-navigation	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor-navigation*
+nvim-treesitter-refactor-smart-rename	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor-smart-rename*
+nvim-treesitter-refactor.txt	nvim-treesitter-refactor.txt	/*nvim-treesitter-refactor.txt*

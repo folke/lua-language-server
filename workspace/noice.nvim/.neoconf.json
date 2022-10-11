@@ -1,0 +1,19 @@
+{
+  "lua-dev": {
+    "library": {
+      "plugins": [
+        "nui.nvim",
+        "nvim-cmp",
+        "nvim-notify",
+        "lua-dev.nvim",
+        "telescope.nvim"
+      ]
+    }
+  },
+  "lspconfig": {
+    "sumneko_lua": {
+      "Lua.runtime.version": "LuaJIT",
+      "Lua.workspace.checkThirdParty": false,
+    }
+  }
+}

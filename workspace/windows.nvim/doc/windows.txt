@@ -1,0 +1,143 @@
+windows.txt							  *windows.nvim*
+================================================================================
+INSTALLATION AND SETUP
+
+This plugin requires plugins as dependencies:
+
+  - middleclass:	https://github.com/anuvyklack/middleclass
+
+  - animation.nvim:	https://github.com/anuvyklack/animation.nvim
+			Optional: needed if you want animations.
+
+Also, if you enable animations, is recommended to set 'winwidth', 'winminwidth'
+options to some reasonable and equal values (between 5 and 20 will be OK), and
+disable 'equalalways' option.
+
+You can install and setup |windows.nvim| with |packer.nvim| plugin manager using
+next snippet:
+>
+    use { "anuvyklack/windows.nvim",
+       requires = {
+          "anuvyklack/middleclass",
+          "anuvyklack/animation.nvim"
+       },
+       config = function()
+          vim.o.winwidth = 10
+          vim.o.winminwidth = 10
+          vim.o.equalalways = false
+          require('windows').setup()
+       end
+    }
+<
+================================================================================
+COMMANDS						      *windows.commands*
+
+							      *windows.maximize*
+:WindowsMaximize	Maximize current window. If the window is already
+			maximized, then restore original sizes. When go to
+			another window while current is maximized - will be
+			restored. If the window will be closed while being
+			maximized, then all other windows would be equalized.
+
+						   *windows.maximize-vertically*
+:WindowsMaximizeVertically
+			Maximize width of the current window. Almost the same as
+			|CTRL-W_bar| but with animation.
+
+						 *windows.maximize-horizontally*
+:WindowsMaximizeHorizontally
+			Maximize height of the current window. Almost the same
+			as |CTRL-W__| but with animation.
+
+							      *windows.equalize*
+:WindowsEqualize
+			Equalize all windows heights and widths width animation.
+			See |CTRL-W_=|
+
+WindowsEnableAutowidth
+WindowsDisableAutowidth
+WindowsToggleAutowidth
+			Enable, disable or toggle auto-width feature.
+
+--------------------------------------------------------------------------------
+KEYMAPINGS
+
+If you want a keymaps thees are a fitting choice:
+>
+    local function cmd(command)
+       return table.concat({ '<Cmd>', command, '<CR>' })
+    end
+
+    vim.keymap.set('n', '<C-w>z', cmd 'WindowsMaximize')
+    vim.keymap.set('n', '<C-w>_', cmd 'WindowsMaximizeVertically')
+    vim.keymap.set('n', '<C-w>|', cmd 'WindowsMaximizeHorizontally')
+    vim.keymap.set('n', '<C-w>=', cmd 'WindowsEqualize')
+<
+================================================================================
+CONFIGURATION
+
+DEFAULT SETTINGS
+--------------------------------------------------------------------------------
+require("windows").setup({
+   autowidth = {			--		       |windows.autowidth|
+      enable = true,
+      winwidth = 5,			--		        |windows.winwidth|
+      filetype = {			--	      |windows.autowidth.filetype|
+         help = 2,
+      },
+   },
+   ignore = {				--			  |windows.ignore|
+      buftype = { "quickfix" },
+      filetype = { "NvimTree", "neo-tree", "undotree", "gundo" }
+   },
+   animation = {
+      enable = true,
+      duration = 300,
+      fps = 30,
+      easing = "in_out_sine"
+   }
+})
+--------------------------------------------------------------------------------
+
+If you enable animations, is recommended to set 'winwidth', 'winminwidth'
+options to some reasonable and equal values (between 5 and 20 will be OK).
+
+autowidth		table				     *windows.autowidth*
+
+	enable		boolean
+			default: `true`
+			parent table: `autowidth`
+							      *windows.winwidth*
+	winwidth	number
+			default: `5`
+			parent table: `autowidth`
+		0 < n < 1   The value between 0 to 1 will be considered as the
+			    fraction of the totall Vim window width.
+
+		1 < n < 2   Values between 1 and 2 will be considered as the
+			    fraction of the 'textwidth'.  For example:
+			    `winwidth = 1.3` set split width to `1.3 * &textwidth`
+
+		integer number (…, -2, -1, 0, 1, 2, …)
+			    The number of columns that will be added to
+			    'textwidth'.  If 'textwidth' is 0, assumed to 80.
+			    For example: `winwidth = 5` set split width to
+			    `&textwidth + 5`
+						    *windows.autowidth.filetype*
+	filetype	table<string, number>
+		Allow to set |windows.winwidth| per 'filetype' specific.
+
+								*windows.ignore*
+ignore			{ `buftype`: string[], `filetype`: string[] }
+		'buftype's and 'filetype's that will be ignored durign resizing.
+
+animation		table
+		See more info about animation under |animation-plugin| tag.
+
+	enable		boolean
+			default: `true`
+			parent table: `animation`
+		If `false` then animation will be disabled.
+
+--------------------------------------------------------------------------------
+ vim:ft=help:tw=80:ts=8:noet:norl:

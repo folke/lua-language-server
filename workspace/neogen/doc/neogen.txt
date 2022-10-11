@@ -1,0 +1,439 @@
+==============================================================================
+------------------------------------------------------------------------------
+Table of contents:
+  Neogen's purpose....................................................|neogen|
+  The setup function..........................................|neogen.setup()|
+  Usage.........................................................|neogen-usage|
+  Configure the setup...................................|neogen-configuration|
+  Generate annotations.....................................|neogen.generate()|
+  Contributing................................................|neogen-develop|
+  Changes in neogen plugin..................................|neogen-changelog|
+  Use popular snippet engines.....................|neogen-snippet-integration|
+  Configurations for the template table........|neogen-template-configuration|
+  How to create/customize an annotation....................|neogen-annotation|
+
+
+------------------------------------------------------------------------------
+                                                                        *neogen*
+What is Neogen ?
+
+# Abstract~
+
+Neogen is an extensible and extremely configurable annotation generator for your favorite languages
+
+Want to know what the supported languages are ?
+Check out the up-to-date readme section: https://github.com/danymat/neogen#supported-languages
+
+# Concept~
+
+- Create annotations with one keybind, and jump your cursor in the inserted annotation
+- Defaults for multiple languages and annotation conventions
+- Extremely customizable and extensible
+- Written in lua (and uses Tree-sitter)
+
+------------------------------------------------------------------------------
+                                                                *neogen.setup()*
+                             `neogen.setup`({opts})
+Module setup
+
+Parameters~
+{opts} `(table)` Config table (see |neogen.configuration|)
+
+Usage~
+`require('neogen').setup({})` (replace `{}` with your `config` table)
+
+------------------------------------------------------------------------------
+                                                                  *neogen-usage*
+Neogen Usage
+
+Neogen will use Treesitter parsing to properly generate annotations.
+
+The basic idea is that Neogen will generate annotation to the type you're in.
+For example, if you have a csharp function like (note the cursor position):
+
+>
+ public class HelloWorld
+ {
+     public static void Main(string[] args)
+     {
+         # CURSOR HERE
+         Console.WriteLine("Hello world!");
+         return true;
+     }
+
+     public int someMethod(string str, ref int nm, void* ptr) { return 1; }
+
+ }
+<
+
+and you call `:Neogen class`, it will generate the annotation for the upper class:
+
+>
+ /// <summary>
+ /// ...
+ /// </summary>
+ public class HelloWorld
+ {
+<
+
+Currently supported types are `func`, `class`, `type`, `file`.
+Check out the up-to-date readme section: https://github.com/danymat/neogen#supported-languages
+To know the supported types for a certain language
+
+NOTE: calling `:Neogen` without any type is the same as `:Neogen func`
+
+------------------------------------------------------------------------------
+                                                          *neogen-configuration*
+                             `neogen.configuration`
+# Basic configurations~
+
+Neogen provides those defaults, and you can change them to suit your needs
+>
+  neogen.configuration = {
+      -- Enables Neogen capabilities
+      enabled = true,
+
+      -- Go to annotation after insertion, and change to insert mode
+      input_after_comment = true,
+
+      -- Configuration for default languages
+      languages = {},
+
+      -- Use a snippet engine to generate annotations.
+      snippet_engine = nil,
+
+      -- Enables placeholders when inserting annotation
+      enable_placeholders = true,
+
+      -- Placeholders used during annotation expansion
+      placeholders_text = {
+          ["description"] = "[TODO:description]",
+          ["tparam"] = "[TODO:tparam]",
+          ["parameter"] = "[TODO:parameter]",
+          ["return"] = "[TODO:return]",
+          ["class"] = "[TODO:class]",
+          ["throw"] = "[TODO:throw]",
+          ["varargs"] = "[TODO:varargs]",
+          ["type"] = "[TODO:type]",
+          ["attribute"] = "[TODO:attribute]",
+          ["args"] = "[TODO:args]",
+          ["kwargs"] = "[TODO:kwargs]",
+      },
+
+      -- Placeholders highlights to use. If you don't want custom highlight, pass "None"
+      placeholders_hl = "DiagnosticHint",
+  }
+<
+# Notes~
+
+- to configure a language, just add your configurations in the `languages` table.
+  For example, for the `lua` lang:
+>
+   languages = {
+     lua = { -- Configuration here }
+   }
+<
+  Default configurations for a languages can be found in `lua/neogen/configurations/<your_language>.lua`
+
+ - To know which snippet engines are supported, take a look at |neogen-snippet-integration|.
+   Example: `snippet_engine = "luasnip"`
+
+
+------------------------------------------------------------------------------
+                                                             *neogen.generate()*
+                           `neogen.generate`({opts})
+The only function required to use Neogen.
+
+It'll try to find the first parent that matches a certain type.
+For example, if you are inside a function, and called `generate({ type = "func" })`,
+Neogen will go until the start of the function and start annotating for you.
+
+Parameters~
+{opts} `(table)` Optional configs to change default behaviour of generation.
+ - {opts.type} `(string, default: "func")` Which type we are trying to use for generating annotations.
+   Currently supported: `func`, `class`, `type`, `file`
+ - {opts.annotation_convention} `(table)` convention to use for generating annotations.
+   This is language specific. For example, `generate({ annotation_convention = { python = 'numpydoc' } })`
+   If no convention is specified for a specific language, it'll use the default annotation convention for the language.
+ - {opts.return_snippet} `boolean` if true, will return 3 values from the function call.
+ This option is useful if you want to get the snippet to use with a unsupported snippet engine
+ Below are the returned values:
+ - 1: (type: `string[]`) the resulting lsp snippet
+ - 2: (type: `number`) the `row` to insert the annotations
+ - 3: (type: `number`) the `col` to insert the annotations
+
+------------------------------------------------------------------------------
+                                                                *neogen-develop*
+Contribute to Neogen
+
+*   Want to add a new language?
+    1.  Using the defaults to generate a new language support:
+        https://github.com/danymat/neogen/blob/main/docs/adding-languages.md
+    2.  (advanced) Only if the defaults aren't enough, please see here:
+        https://github.com/danymat/neogen/blob/main/docs/advanced-integration.md
+*   Want to contribute to an existing language?
+    I guess you can still read the previous links, as they have some valuable knowledge inside.
+    You can go and directly open/edit the configuration file relative to the language you want to contribute to.
+
+Feel free to submit a PR, I will be happy to help you !
+
+------------------------------------------------------------------------------
+                                                              *neogen-changelog*
+                                `neogen.version`
+We use semantic versioning ! (https://semver.org)
+Here is the current Neogen version:
+>
+  neogen.version = "2.8.1"
+<
+# Changelog~
+
+Note: We will only document `major` and `minor` versions, not `patch` ones. (only X and Y in X.Y.z)
+
+## 2.8.0~
+  - Specify annotation convention on `generate()` method (see |neogen.generate()|)
+## 2.7.0~
+  - Add support for `snippy` snippet engine ! (see |neogen-snippet-integration|)
+## 2.6.0~
+  - Add support for placeholders in snippet insertion !
+    None: placeholders are automatically set when using a bundled snippet engine.
+    - Add `enable_placeholders` option (see |neogen-configuration|)
+    - Add `placeholders_text` option (see |neogen-configuration|)
+    - Add `placeholders_hl` option (see |neogen-configuration|)
+
+  Example placeholders:
+>
+ --- [TODO:description]
+ ---@param param1 [TODO:parameter] [TODO:description]
+ function test(param1) end
+<
+## 2.5.0~
+  - Ruby: Add support for `tomdoc` (http://tomdoc.org)
+## 2.4.0~
+  - Improve godoc template (#75)
+## 2.3.0~
+  - Added bundled support with snippet engines !
+    Check out |neogen-snippet-integration| for basic setup
+## 2.2.0~
+  ### Python~
+    - Add support for `*args` and `**kwargs`
+    - Fix python return annotations being inconsistent in numpydoc template
+## 2.1.0~
+  - Add basic support for `kotlin` (`kdoc`).
+## 2.0.0~
+  - We made the template API private, only for initial template configuration.
+    If you want to make a change to a template, please see:
+    |neogen-template-configuration| and |neogen-annotation|
+## 1.0.0~
+  - Neogen is officially out ! We support 16 languages as of right now,
+    with multiple annotation conventions.
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                    *neogen-snippet-integration*
+                                   `snippet`
+
+To use a snippet engine, pass the option into neogen setup:
+>
+ require('neogen').setup({
+   snippet_engine = "luasnip",
+   ...
+ })
+<
+Some snippet engines come out of the box bundled with neogen:
+- `"luasnip"` (https://github.com/L3MON4D3/LuaSnip)
+- `"snippy"` (https://github.com/dcampos/nvim-snippy)
+
+If you want to customize the placeholders, you can use `placeholders_text` option:
+>
+ require('neogen').setup({
+   placeholders_text = {
+     ['description'] = "[description]",
+   }
+ })
+<
+
+# Add support for snippet engines~
+
+To add support to a snippet engine, go to `lua/neogen/snippet.lua`.
+There's a table called `snippet.engines` that holds functions that will be called
+depending of the snippet engine
+
+Those functions have this signature:
+`snippet_engine_name = function (snip, pos)` where
+- `snip` is a lsp styled snippet (in table format)
+- `pos` is a { row , col } table for placing the snippet
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                 *neogen-template-configuration*
+
+Each filetype has a template configuration.
+A template configuration is responsible for explicitely adding templates
+corresponding to annotation conventions,
+as well as providing custom configurations in order to be precise about
+how to customize the annotations.
+
+Type~
+neogen.TemplateConfig
+
+Default values:
+
+>
+  local neogen_template = {
+      annotation_convention = nil,
+      use_default_comment = false,
+  }
+<
+
+------------------------------------------------------------------------------
+# neogen.TemplateConfig~
+
+Class~
+{neogen.TemplateConfig} see |template_config|
+Fields~
+{annotation_convention} `(string)` select which annotation convention to use
+{use_default_comment} `(boolean)` Prepend default filetype comment before a annotation
+{append} `(optional)` neogen.TemplateConfig.Append custom placement of the annotation
+{position} `(fun(node: userdata, type: string): number,number)` Provide an absolute position for the annotation
+  If values are `nil`, use default positioning
+
+Class~
+{neogen.TemplateConfig.Append}
+{child_name} `(string)` Which child node to use for appending the annotation
+{fallback} `(string)` Node to fallback if `child_name` is not found
+{position} "'after'"|"'before'" Place the annotation relative to position with `child_name` or `fallback`
+{disabled} `(optional)` `(table)` Disable custom placement for provided types
+
+For example, to customize the placement for a python annotation, we can use `append`, like so:
+
+>
+ python = {
+     template = {
+         append = {
+             child_name = "comment", fallback = "block", position = "after"
+         }
+     }
+ }
+<
+
+Here, we instruct the generator to place the annotation "after" the "comment" (if not found: "block") node
+
+Results in:
+
+>
+ def test():
+     """ """
+     pass
+<
+
+Or:
+
+>
+ def test():
+     # This is a comment
+     """ """
+     pass
+<
+
+------------------------------------------------------------------------------
+                                                             *neogen-annotation*
+
+In this section, you'll learn how to create your own annotation convention
+First of all, you need to know an annotation template behaves, with an example:
+>
+ local i = require("neogen.types.template").item
+
+ annotation = {
+     { nil, "- $1", { type = { "class", "func" } } },
+     { nil, "- $1", { no_results = true, type = { "class", "func" } } },
+     { nil, "-@module $1", { no_results = true, type = { "file" } } },
+     { nil, "-@author $1", { no_results = true, type = { "file" } } },
+     { nil, "-@license $1", { no_results = true, type = { "file" } } },
+     { nil, "", { no_results = true, type = { "file" } } },
+     { i.Parameter, "-@param %s $1|any" },
+     { i.Vararg, "-@vararg $1|any" },
+     { i.Return, "-@return $1|any" },
+     { i.ClassName, "-@class $1|any" },
+     { i.Type, "-@type $1" },
+ }
+<
+- `local i = require("neogen.types.template").item`
+    Stores every supported node name that you can use for a language.
+    A node name is found with Treesitter during the configuration of a language
+
+- `{ nil, "- $1", { type = { "class", "func" } } }`
+    Here is an item of a annotation convention.
+    It consists of 2 required fields (first and second), and an optional third field
+
+    - The first field is a `string`, or `table`: this item will be used each time there is this node name.
+        If it is `nil`, then it'll not required a node name.
+        If you need a node name, we recommend using the items from `local i`, like so:
+         `{ i.Type, "-@type $1" },`
+        If it's a `table`, it'll be used for more advanced generation:
+        `{ { i.Parameter, i.Type }, "    %s (%s): $1", { required = "typed_parameters", type = { "func" } } },`
+        Means: if there are `Parameters` and `Types` inside a node called `typed_parameters`,
+          these two nodes will be used in the generated line
+
+    - The second item is a `string`, and is the string that'll be written in output.
+        It'll be formatted with some important fields:
+        - `%s` will use the content from the node name
+        - `$1` will be replaced with a cursor position (so that the user can jump to)
+        Example: `{ i.Parameter, "-@param %s $1|any" },` will result in:
+        `-@param hello ` (will a parameter named `hello`)
+
+    - The third item is a `table` (optional), and are the local options for the line.
+        See below (`neogen.AnnotationLine.Opts`) for more information on what is required
+
+Now that you know every field, let's see how we could generate a basic annotation for a python function:
+>
+ # Desired output:
+ def test(param1, param2, param3):
+ """
+ Parameters
+ ----------
+ param1:
+ param2:
+ param3:
+ """
+ pass
+<
+Will be very simply created with an convention like so:
+ local i = require("neogen.types.template").item
+
+>
+ annotation = {
+     { i.Parameter, "%s: $1", { before_first_item = { "Parameters", "----------" } } },
+ }
+<
+We recommend you look into the the content of `neogen/templates` for a list of the default annotation conventions.
+
+Last step, if you want to use your own annotation convention for a language:
+  >
+   require('neogen').setup {
+     languages = {
+       python = {
+         template = {
+           annotation_convention = "my_annotation",
+           my_annotation = annotation
+         }
+     }
+   }
+  <
+
+------------------------------------------------------------------------------
+# neogen.AnnotationLine~
+
+Class~
+{neogen.AnnotationLine.Opts}
+Fields~
+{no_results} `(boolean)` If true, will only generate the line if there are no values returned by the configuration
+{type} `(string[])` If specified, will only generate the line for the required types.
+If not specified, will use this line for all types.
+{before_first_item} `(string[])` If specified, will append these lines before the first found item of the configuration
+{after_each} `(string)` If specified, append the line after each found item of the configuration
+{required} `(string)` If specified, is used in if the first field of the table is a `table` (example above)
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

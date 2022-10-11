@@ -1,0 +1,21 @@
+{
+  "settings": {
+    "plugins": {
+      "sumneko_lua": {
+        "enabled": true
+      }
+    }
+  },
+  "lua-dev": {
+    "library": {
+      "enabled": true,
+      "plugins": [
+        "neoconf.nvim",
+        "nvim-lspconfig"
+      ]
+    }
+  },
+  "lspconfig": {
+    "sumneko_lua": {}
+  }
+}

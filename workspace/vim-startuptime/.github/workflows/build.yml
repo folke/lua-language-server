@@ -1,0 +1,59 @@
+name: build
+# When the 'permissions' key is specified, unspecified permission scopes (e.g.,
+# actions, checks, etc.) are set to no access (none).
+permissions:
+  contents: read
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Run daily (* is a special character in YAML, so quote the string)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      # When git-ref is empty, HEAD will be checked out.
+      git-ref:
+        description: Optional git ref (branch, tag, or full SHA)
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        # When the ref is empty, HEAD will be checked out.
+        ref: ${{ github.event.inputs.git-ref }}
+
+    - name: Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install lua-check neovim
+        # Manually installing Vim is necessary until the repo version includes
+        # support for vim9script.
+        git clone https://github.com/vim/vim.git
+        cd vim
+        ./configure
+        make -j $(nproc)
+        sudo make install
+
+    - name: Check Help Tags
+      run: |
+        # Check if the help tags file should be updated
+        vim -c 'helptags doc/' -c quit
+        test -z "$(git status --porcelain doc/)"
+
+    - name: Luacheck
+      run: luacheck .
+
+    - name: Tests
+      run: |
+        mkdir -p ~/.local/share/nvim/site/pack/plugins/start/
+        ln -s "$PWD" ~/.local/share/nvim/site/pack/plugins/start/
+        mkdir -p ~/.vim/pack/plugins/start/
+        ln -s "$PWD" ~/.vim/pack/plugins/start/
+        tests/run.py
